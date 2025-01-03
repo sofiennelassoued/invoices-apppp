@@ -82,7 +82,7 @@
           });
           document.getElementById("invoice-list").innerHTML += `
                     <li>
-                        <strong>${invoice._id}</strong> - ${invoice.tag} - ${invoice.date}
+                        <strong>${invoice._id}</strong> - <button onclick="updateInvoiceStatus('${invoice._id}')">${invoice.status}</button> - ${invoice.tag} - ${invoice.date}
                         <button onclick="deleteInvoice('${invoice._id}')">Delete</button>
                         <table>
                             <tr>
@@ -125,6 +125,22 @@
         fetchInvoices();
       }
 
+      async function updateInvoiceStatus(id) {
+        const status = prompt(
+          "Choose invoice status: ['Draft', 'Pending', 'Paid', 'Partial Payment', 'Overdue', 'Cancelled', 'Rejected', 'Refunded']"
+        );
+        console.log(status);
+        await fetch(`${apiUrl}/invoices/${id}/status`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${userToken}`,
+          },
+          body: JSON.stringify({ status }),
+        });
+        fetchInvoices();
+      }
+
       const deleteRecipient = async (id) => {
         await fetch(`${apiUrl}/recipients/${id}`, {
           method: "DELETE",
@@ -134,6 +150,7 @@
       };
       // Make functions globally accessible
       window.deleteInvoice = deleteInvoice;
+      window.updateInvoiceStatus = updateInvoiceStatus;
       window.deleteRecipient = deleteRecipient;
 
       document.getElementById("login").addEventListener("click", async () => {
