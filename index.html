@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Invoice Management</title>
+    <script
+      type="module"
+      src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"
+    ></script>
+    <script
+      type="module"
+      src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js"
+    ></script>
+    <script
+      type="module"
+      src="https://code.jquery.com/jquery-3.6.0.min.js"
+    ></script>
+  </head>
+  <body>
+    <h1>Invoice Management Application</h1>
+    <div id="auth">
+      <button id="login">Login with Google</button>
+      <button id="logout" style="display: none">Logout</button>
+    </div>
+
+    <div id="content" style="display: none">
+      <h2>Invoices</h2>
+      <button id="create-invoice">Create Invoice</button>
+      <ul id="invoice-list"></ul>
+
+      <h2>Recipients</h2>
+      <button id="create-recipient">Create Recipient</button>
+      <ul id="recipient-list"></ul>
+    </div>
+
+    <script type="module">
+      // Firebase SDK imports
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+      import {
+        getAuth,
+        GoogleAuthProvider,
+        signInWithPopup,
+        signOut,
+      } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyCVePlFLC1fVxfBEUSpbiCDosjuKUw4-9g",
+        authDomain: "invoices-f4033.firebaseapp.com",
+        projectId: "invoices-f4033",
+        storageBucket: "invoices-f4033.firebasestorage.app",
+        messagingSenderId: "429530604490",
+        appId: "1:429530604490:web:5dd4d8cbddb2d865582533",
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const provider = new GoogleAuthProvider();
+
+      let userToken = null;
+
+      const apiUrl = "http://localhost:3000";
+
+      const fetchInvoices = async () => {
+        const response = await fetch(`${apiUrl}/invoices`, {
+          headers: { Authorization: `Bearer ${userToken}` },
+        });
+        const invoices = await response.json();
+        document.getElementById("invoice-list").innerHTML = "";
+        invoices.forEach((invoice) => {
+          let items_data = "";
+          invoice.items.forEach((element) => {
+            items_data =
+              items_data +
+              `<tr><td>${element.label}</td>
+                                <td>${element.quantity}</td>
+                                <td>${element.unitPrice}</td>
+                                <td>${element.vat}</td>
+                                </tr>
+                               `;
+          });
+          document.getElementById("invoice-list").innerHTML += `
+                    <li>
+                        <strong>${invoice._id}</strong> - ${invoice.tag} - ${invoice.date}
+                        <button onclick="deleteInvoice('${invoice._id}')">Delete</button>
+                        <table>
+                            <tr>
+                                <td>Label</td>
+                                <td>Quantity</td>
+                                <td>Unit Price</td>
+                                <td>VAT</td>
+                            </tr>
+                            <tr>
+                                ${items_data}
+                            </tr>
+                        </table>
+                    </li>
+                `;
+        });
+      };
+
+      const fetchRecipients = async () => {
+        const response = await fetch(`${apiUrl}/recipients`, {
+          headers: { Authorization: `Bearer ${userToken}` },
+        });
+        const recipients = await response.json();
+        document.getElementById("recipient-list").innerHTML = "";
+        recipients.forEach((recipient) => {
+          document.getElementById("recipient-list").innerHTML += `
+                    <li>
+                        <strong>ID: ${recipient._id}</strong>
+                        <strong>${recipient.name}</strong> - ${recipient.email}
+                        <button onclick="deleteRecipient('${recipient._id}')">Delete</button>
+                    </li>
+                `;
+        });
+      };
+
+      async function deleteInvoice(id) {
+        await fetch(`${apiUrl}/invoices/${id}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${userToken}` },
+        });
+        fetchInvoices();
+      }
+
+      const deleteRecipient = async (id) => {
+        await fetch(`${apiUrl}/recipients/${id}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${userToken}` },
+        });
+        fetchRecipients();
+      };
+      // Make functions globally accessible
+      window.deleteInvoice = deleteInvoice;
+      window.deleteRecipient = deleteRecipient;
+
+      document.getElementById("login").addEventListener("click", async () => {
+        try {
+          const result = await signInWithPopup(auth, provider);
+          userToken = await result.user.getIdToken();
+          document.getElementById("login").style.display = "none";
+          document.getElementById("logout").style.display = "inline";
+          document.getElementById("content").style.display = "block";
+          fetchInvoices();
+          fetchRecipients();
+        } catch (error) {
+          console.error("Error logging in:", error);
+        }
+      });
+
+      document.getElementById("logout").addEventListener("click", async () => {
+        await signOut(auth);
+        userToken = null;
+        document.getElementById("login").style.display = "inline";
+        document.getElementById("logout").style.display = "none";
+        document.getElementById("content").style.display = "none";
+      });
+
+      document
+        .getElementById("create-invoice")
+        .addEventListener("click", () => {
+          const recipientId = prompt("Enter recepient ID:");
+          const tag = prompt(
+            "Enter Invoice tag (Invoice human readable identifier):"
+          );
+          const date = prompt("Enter Date (YYYY-MM-DD):");
+          const count = prompt("How many items");
+          if (Number(count) > 0) {
+            const items = [];
+            for (let index = 0; index < count; index++) {
+              const item = {};
+              const labelStr = prompt("Item " + index + ", Label");
+              const quantityStr = prompt("Item " + index + ", Quantity");
+              const unitPriceStr = prompt("Item " + index + ", Unit Price");
+              const vatStr = prompt("Item " + index + ", VAT");
+              item["label"] = labelStr;
+              item["quantity"] = Number(quantityStr);
+              item["unitPrice"] = Number(unitPriceStr);
+              item["vat"] = Number(vatStr);
+              items.push(item);
+            }
+            fetch(`${apiUrl}/invoices`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${userToken}`,
+              },
+              body: JSON.stringify({ recipientId, items, tag, date }),
+            }).then(fetchInvoices);
+          }
+        });
+
+      document
+        .getElementById("create-recipient")
+        .addEventListener("click", () => {
+          const name = prompt("Enter Recipient Name:");
+          const email = prompt("Enter Recipient Email:");
+          fetch(`${apiUrl}/recipients`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${userToken}`,
+            },
+            body: JSON.stringify({ name, email }),
+          }).then(fetchRecipients);
+        });
+    </script>
+  </body>
+</html>
