@@ -54,6 +54,16 @@ const ItemSchema = new mongoose.Schema({
   vat: Number,
 });
 
+const INVOICE_STATUSES = [
+  "Draft",
+  "Pending",
+  "Paid",
+  "Partial Payment",
+  "Overdue",
+  "Cancelled",
+  "Rejected",
+  "Refunded",
+];
 const InvoiceSchema = new mongoose.Schema({
   tag: String,
   description: String,
@@ -67,9 +77,9 @@ const InvoiceSchema = new mongoose.Schema({
   items: [ItemSchema],
   userId: String,
   status: {
-      type: String,
-      enum: ['Draft', 'Pending', 'Paid', 'Partial Payment', 'Overdue', 'Cancelled', 'Rejected', 'Refunded'],
-      default: 'Draft',
+    type: String,
+    enum: INVOICE_STATUSES,
+    default: INVOICE_STATUSES[0],
   },
 });
 
@@ -139,6 +149,31 @@ app.get("/invoices", verifyFirebaseToken, async (req, res) => {
   try {
     const invoices = await Invoice.find({ userId: req.user.uid });
     res.send(invoices);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+// Update the status of an invoice
+app.patch("/invoices/:id/status", verifyFirebaseToken, async (req, res) => {
+  try {
+    const { status } = req.body;
+
+    if (!INVOICE_STATUSES.includes(status)) {
+      return res.status(400).send("Invalid status");
+    }
+
+    const invoice = await Invoice.findOneAndUpdate(
+      { _id: req.params.id, userId: req.user.uid },
+      { status },
+      { new: true }
+    );
+
+    if (!invoice) {
+      return res.status(404).send("Invoice not found");
+    }
+
+    res.send(invoice);
   } catch (error) {
     res.status(400).send(error);
   }
