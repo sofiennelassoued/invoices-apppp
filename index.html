@@ -29,9 +29,13 @@
       <button id="create-invoice">Create Invoice</button>
       <ul id="invoice-list"></ul>
 
-      <h2>Recipients</h2>
+      <h2>Recipients (Your clients)</h2>
       <button id="create-recipient">Create Recipient</button>
       <ul id="recipient-list"></ul>
+
+      <h2>Senders (You)</h2>
+      <button id="create-sender">Create Sender</button>
+      <ul id="sender-list"></ul>
     </div>
 
     <script type="module">
@@ -108,12 +112,29 @@
         document.getElementById("recipient-list").innerHTML = "";
         recipients.forEach((recipient) => {
           document.getElementById("recipient-list").innerHTML += `
-                    <li>
-                        <strong>ID: ${recipient._id}</strong>
-                        <strong>${recipient.name}</strong> - ${recipient.email}
-                        <button onclick="deleteRecipient('${recipient._id}')">Delete</button>
-                    </li>
-                `;
+              <li>
+                  <strong>ID: ${recipient._id}</strong>
+                  <strong>${recipient.name}</strong> - ${recipient.email}
+                  <button onclick="deleteRecipient('${recipient._id}')">Delete</button>
+              </li>
+          `;
+        });
+      };
+
+      const fetchSenders = async () => {
+        const response = await fetch(`${apiUrl}/senders`, {
+          headers: { Authorization: `Bearer ${userToken}` },
+        });
+        const senders = await response.json();
+        document.getElementById("sender-list").innerHTML = "";
+        senders.forEach((sender) => {
+          document.getElementById("sender-list").innerHTML += `
+              <li>
+                  <strong>ID: ${sender._id}</strong>
+                  <strong>${sender.name}</strong> - ${sender.address}
+                  <button onclick="deleteSender('${sender._id}')">Delete</button>
+              </li>
+          `;
         });
       };
 
@@ -148,10 +169,19 @@
         });
         fetchRecipients();
       };
+
+      const deleteSender = async (id) => {
+        await fetch(`${apiUrl}/senders/${id}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${userToken}` },
+        });
+        fetchSenders();
+      };
       // Make functions globally accessible
       window.deleteInvoice = deleteInvoice;
       window.updateInvoiceStatus = updateInvoiceStatus;
       window.deleteRecipient = deleteRecipient;
+      window.deleteSender = deleteSender;
 
       document.getElementById("login").addEventListener("click", async () => {
         try {
@@ -162,6 +192,7 @@
           document.getElementById("content").style.display = "block";
           fetchInvoices();
           fetchRecipients();
+          fetchSenders();
         } catch (error) {
           console.error("Error logging in:", error);
         }
@@ -178,6 +209,7 @@
       document
         .getElementById("create-invoice")
         .addEventListener("click", () => {
+          const senderId = prompt("Enter sender ID:");
           const recipientId = prompt("Enter recepient ID:");
           const tag = prompt(
             "Enter Invoice tag (Invoice human readable identifier):"
@@ -204,10 +236,25 @@
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${userToken}`,
               },
-              body: JSON.stringify({ recipientId, items, tag, date }),
+              body: JSON.stringify({ senderId, recipientId, items, tag, date }),
             }).then(fetchInvoices);
           }
         });
+
+      document.getElementById("create-sender").addEventListener("click", () => {
+        const name = prompt("Enter Sender Name:");
+        const address = prompt("Enter Sender address:");
+        const vatStr = prompt("Enter Sender VAT:");
+        const vat = Number(vatStr);
+        fetch(`${apiUrl}/senders`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${userToken}`,
+          },
+          body: JSON.stringify({ name, address, vat }),
+        }).then(fetchSenders);
+      });
 
       document
         .getElementById("create-recipient")

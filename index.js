@@ -42,8 +42,15 @@ db.once("open", () => {
 const RecipientSchema = new mongoose.Schema({
   name: String,
   address: String,
-  vat: String,
+  vat: Number,
   email: String,
+  userId: String,
+});
+
+const SenderSchema = new mongoose.Schema({
+  name: String,
+  address: String,
+  vat: Number,
   userId: String,
 });
 
@@ -68,11 +75,7 @@ const InvoiceSchema = new mongoose.Schema({
   tag: String,
   description: String,
   date: Date,
-  sender: {
-    name: String,
-    address: String,
-    vat: String,
-  },
+  sender: SenderSchema,
   recipient: RecipientSchema,
   items: [ItemSchema],
   userId: String,
@@ -83,6 +86,7 @@ const InvoiceSchema = new mongoose.Schema({
   },
 });
 
+const Sender = mongoose.model("Sender", SenderSchema);
 const Recipient = mongoose.model("Recipient", RecipientSchema);
 const Invoice = mongoose.model("Invoice", InvoiceSchema);
 
@@ -107,6 +111,13 @@ const verifyFirebaseToken = async (req, res, next) => {
 // Create a new invoice
 app.post("/invoices", verifyFirebaseToken, async (req, res) => {
   try {
+    const sender = await Sender.findOne({
+      _id: req.body.senderId,
+      userId: req.user.uid,
+    });
+    if (!sender) {
+      return res.status(404).send("Sender not found");
+    }
     const recipient = await Recipient.findOne({
       _id: req.body.recipientId,
       userId: req.user.uid,
@@ -114,16 +125,13 @@ app.post("/invoices", verifyFirebaseToken, async (req, res) => {
     if (!recipient) {
       return res.status(404).send("Recipient not found");
     }
-    const invoiceId = crypto.randomBytes(20).toString("hex");
     const invoice = new Invoice({
       ...req.body,
-      invoiceId,
       userId: req.user.uid,
     });
     await invoice.save();
     res.status(201).send(invoice);
   } catch (error) {
-    console.log(error);
     res.status(400).send(error);
   }
 });
@@ -212,7 +220,7 @@ app.delete("/invoices/:id", verifyFirebaseToken, async (req, res) => {
   }
 });
 
-// Get all invoices
+// Get all recipients
 app.get("/recipients", verifyFirebaseToken, async (req, res) => {
   try {
     const recipients = await Recipient.find({ userId: req.user.uid });
@@ -241,10 +249,8 @@ app.get("/recipients/:id", verifyFirebaseToken, async (req, res) => {
 // Create a recipient
 app.post("/recipients", verifyFirebaseToken, async (req, res) => {
   try {
-    const recipientId = crypto.randomBytes(20).toString("hex");
     const recipient = new Recipient({
       ...req.body,
-      recipientId,
       userId: req.user.uid,
     });
     await recipient.save();
@@ -282,6 +288,79 @@ app.delete("/recipients/:id", verifyFirebaseToken, async (req, res) => {
       return res.status(404).send("Recipient not found");
     }
     res.send(recipient);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+// Get all senders
+app.get("/senders", verifyFirebaseToken, async (req, res) => {
+  try {
+    const senders = await Sender.find({ userId: req.user.uid });
+    res.send(senders);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+// Get a single sender by ID
+app.get("/senders/:id", verifyFirebaseToken, async (req, res) => {
+  try {
+    const sender = await Sender.findOne({
+      _id: req.params.id,
+      userId: req.user.uid,
+    });
+    if (!sender) {
+      return res.status(404).send("Senders not found");
+    }
+    res.send(sender);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+// Create a sender
+app.post("/senders", verifyFirebaseToken, async (req, res) => {
+  try {
+    const sender = new Sender({
+      ...req.body,
+      userId: req.user.uid,
+    });
+    await sender.save();
+    res.status(201).send(sender);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+// Update a sender
+app.patch("/senders/:id", verifyFirebaseToken, async (req, res) => {
+  try {
+    const sender = await Sender.findOneAndUpdate(
+      { _id: req.params.id, userId: req.user.uid },
+      req.body,
+      { new: true }
+    );
+    if (!sender) {
+      return res.status(404).send("Sender not found");
+    }
+    res.send(sender);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+// Delete a sender
+app.delete("/senders/:id", verifyFirebaseToken, async (req, res) => {
+  try {
+    const sender = await Sender.findOneAndDelete({
+      _id: req.params.id,
+      userId: req.user.uid,
+    });
+    if (!sender) {
+      return res.status(404).send("Sender not found");
+    }
+    res.send(sender);
   } catch (error) {
     res.status(400).send(error);
   }
