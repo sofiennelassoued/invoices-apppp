@@ -66,6 +66,11 @@ const InvoiceSchema = new mongoose.Schema({
   recipient: RecipientSchema,
   items: [ItemSchema],
   userId: String,
+  status: {
+      type: String,
+      enum: ['Draft', 'Pending', 'Paid', 'Partial Payment', 'Overdue', 'Cancelled', 'Rejected', 'Refunded'],
+      default: 'Draft',
+  },
 });
 
 const Recipient = mongoose.model("Recipient", RecipientSchema);
