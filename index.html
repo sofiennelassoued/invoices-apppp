@@ -150,7 +150,6 @@
         const status = prompt(
           "Choose invoice status: ['Draft', 'Pending', 'Paid', 'Partial Payment', 'Overdue', 'Cancelled', 'Rejected', 'Refunded']"
         );
-        console.log(status);
         await fetch(`${apiUrl}/invoices/${id}/status`, {
           method: "PATCH",
           headers: {
