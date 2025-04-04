@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { verifyFirebaseToken } = require("../middlewares");
+const { verifyFirebaseToken, verifyPayment } = require("../middlewares");
 const { Recipient } = require("../models");
 
 // Get all recipients
@@ -30,7 +30,7 @@ router.get("/:id", verifyFirebaseToken, async (req, res) => {
 });
 
 // Create a recipient
-router.post("/", verifyFirebaseToken, async (req, res) => {
+router.post("/", verifyFirebaseToken, verifyPayment, async (req, res) => {
   try {
     const recipient = new Recipient({
       ...req.body,

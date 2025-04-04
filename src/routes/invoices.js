@@ -1,10 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const { verifyFirebaseToken } = require("../middlewares");
+const { verifyFirebaseToken, verifyPayment } = require("../middlewares");
 const { Recipient, Sender, Invoice } = require("../models");
 
 // Create a new invoice
-router.post("/", verifyFirebaseToken, async (req, res) => {
+router.post("/", verifyFirebaseToken, verifyPayment, async (req, res) => {
   try {
     const sender = await Sender.findOne({
       _id: req.body.senderId,
