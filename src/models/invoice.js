@@ -1,6 +1,4 @@
 const mongoose = require("mongoose");
-const { RecipientSchema } = require("./recepients");
-const { SenderSchema } = require("./senders");
 
 const INVOICE_STATUSES = [
   "Draft",
