@@ -6,8 +6,28 @@ const { Sender } = require("../models");
 // Get all senders
 router.get("/", verifyFirebaseToken, async (req, res) => {
   try {
-    const senders = await Sender.find({ userId: req.user.uid });
-    res.send(senders);
+    const { page = 1, limit = 10, name, email } = req.query;
+    const filters = { userId: req.user.uid };
+
+    if (name) {
+      filters.name = { $regex: name, $options: "i" };
+    }
+
+    if (email) {
+      filters.email = { $regex: email, $options: "i" };
+    }
+    const senders = await Sender.find(filters)
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit))
+      .sort({ createdAt: -1 });
+    const total = await Sender.countDocuments(filters);
+    res.send({
+      data: senders,
+      total,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (error) {
     res.status(400).send(error);
   }

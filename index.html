@@ -70,9 +70,9 @@
         const response = await fetch(`${apiUrl}/invoices`, {
           headers: { Authorization: `Bearer ${userToken}` },
         });
-        const invoices = await response.json();
+        const { data } = await response.json();
         document.getElementById("invoice-list").innerHTML = "";
-        invoices.forEach((invoice) => {
+        data.forEach((invoice) => {
           let items_data = "";
           invoice.items.forEach((element) => {
             items_data =
@@ -94,6 +94,7 @@
                                 <td>Quantity</td>
                                 <td>Unit Price</td>
                                 <td>VAT</td>
+                                <td>Status</td>
                             </tr>
                             <tr>
                                 ${items_data}
@@ -108,9 +109,9 @@
         const response = await fetch(`${apiUrl}/recipients`, {
           headers: { Authorization: `Bearer ${userToken}` },
         });
-        const recipients = await response.json();
+        const { data } = await response.json();
         document.getElementById("recipient-list").innerHTML = "";
-        recipients.forEach((recipient) => {
+        data.forEach((recipient) => {
           document.getElementById("recipient-list").innerHTML += `
               <li>
                   <strong>ID: ${recipient._id}</strong>
@@ -125,9 +126,9 @@
         const response = await fetch(`${apiUrl}/senders`, {
           headers: { Authorization: `Bearer ${userToken}` },
         });
-        const senders = await response.json();
+        const { data } = await response.json();
         document.getElementById("sender-list").innerHTML = "";
-        senders.forEach((sender) => {
+        data.forEach((sender) => {
           document.getElementById("sender-list").innerHTML += `
               <li>
                   <strong>ID: ${sender._id}</strong>
