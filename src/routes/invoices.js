@@ -12,7 +12,8 @@ router.get("/", verifyFirebaseToken, async (req, res) => {
       sender,
       recipient,
       status = INVOICE_STATUSES[0],
-      year,
+      startDate,
+      endDate,
       tag,
     } = req.query;
     const filters = { userId: req.user.uid };
@@ -33,11 +34,14 @@ router.get("/", verifyFirebaseToken, async (req, res) => {
       filters.tag = { $regex: tag, $options: "i" };
     }
 
-    if (year) {
-      const start = new Date(`${year}-01-01T00:00:00.000Z`);
-      const end = new Date(`${Number(year) + 1}-01-01T00:00:00.000Z`);
-      filters.createdAt = { $gte: start, $lt: end };
+    if (startDate && endDate) {
+      filters.createdAt = { $gte: startDate, $lt: endDate };
+    } else if (startDate && !endDate) {
+      filters.createdAt = { $gte: startDate };
+    } else if (!startDate && endDate) {
+      filters.createdAt = { $lt: endDate };
     }
+    
     const invoices = await Invoice.find(filters)
       .skip((page - 1) * limit)
       .limit(parseInt(limit))
