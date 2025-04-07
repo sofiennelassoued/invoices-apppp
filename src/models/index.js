@@ -1,5 +1,6 @@
-const { Invoice, INVOICE_STATUSES } = require("./invoices");
-const { Recipient } = require("./recepients");
-const { Sender } = require("./senders");
+const { Invoice, INVOICE_STATUSES } = require("./invoice");
+const { Recipient } = require("./recepient");
+const { Sender } = require("./sender");
+const { Profile } = require("./profile");
 
-module.exports = { Invoice, Recipient, Sender, INVOICE_STATUSES };
+module.exports = { Profile, Invoice, Recipient, Sender, INVOICE_STATUSES };

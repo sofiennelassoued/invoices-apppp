@@ -5,8 +5,8 @@ const mongoose = require("mongoose");
 const admin = require("firebase-admin");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-const FIREBASE_CONFIG = require("./constants/firebase.config");
-const { Invoices, Recipients, Senders } = require("./routes");
+const { FIREBASE_CONFIG } = require("./constants");
+const { Invoices, Recipients, Senders, Profile } = require("./routes");
 
 const {
   DATABASE_USER,
@@ -40,6 +40,7 @@ db.once("open", () => {
 app.use("/senders", Senders);
 app.use("/recipients", Recipients);
 app.use("/invoices", Invoices);
+app.use("/profile", Profile);
 
 // Start the server
 const PORT = process.env.PORT || 3000;
