@@ -1,5 +1,5 @@
 const { Invoice, INVOICE_STATUSES } = require("./invoice");
-const { Recipient } = require("./recepient");
+const { Recipient } = require("./recipient");
 const { Sender } = require("./sender");
 const { Profile } = require("./profile");
 

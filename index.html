@@ -64,7 +64,7 @@
 
       let userToken = null;
 
-      const apiUrl = "http://localhost:3000";
+      const apiUrl = "https://invoices-apppp.onrender.com";
 
       const fetchInvoices = async () => {
         const response = await fetch(`${apiUrl}/invoices`, {
@@ -210,7 +210,7 @@
         .getElementById("create-invoice")
         .addEventListener("click", () => {
           const senderId = prompt("Enter sender ID:");
-          const recipientId = prompt("Enter recepient ID:");
+          const recipientId = prompt("Enter recipient ID:");
           const tag = prompt(
             "Enter Invoice tag (Invoice human readable identifier):"
           );
