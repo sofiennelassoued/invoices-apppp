@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "dev": "node --watch src/index.js"
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js"
   },
   "dependencies": {
     "body-parser": "^1.20.3",
