@@ -6,6 +6,7 @@ const RecipientSchema = new mongoose.Schema(
     address: String,
     vat: Number,
     email: String,
+    pictureUrl: String,
     userId: String,
   },
   { timestamps: true }
