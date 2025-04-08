@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { verifyFirebaseToken, verifyPayment } = require("../middlewares");
-const { Recipient, Sender, Invoice, INVOICE_STATUSES } = require("../models");
+const { Recipient, Sender, Invoice, InvoiceStatus } = require("../models");
 
 // Get all invoices
 router.get("/", verifyFirebaseToken, async (req, res) => {
@@ -11,7 +11,7 @@ router.get("/", verifyFirebaseToken, async (req, res) => {
       limit = 10,
       sender,
       recipient,
-      status = INVOICE_STATUSES[0],
+      status = InvoiceStatus.DRAFT,
       startDate,
       endDate,
       tag,
@@ -35,11 +35,11 @@ router.get("/", verifyFirebaseToken, async (req, res) => {
     }
 
     if (startDate && endDate) {
-      filters.createdAt = { $gte: startDate, $lt: endDate };
+      filters.date = { $gte: startDate, $lt: endDate };
     } else if (startDate && !endDate) {
-      filters.createdAt = { $gte: startDate };
+      filters.date = { $gte: startDate };
     } else if (!startDate && endDate) {
-      filters.createdAt = { $lt: endDate };
+      filters.date = { $lt: endDate };
     }
     
     const invoices = await Invoice.find(filters)
