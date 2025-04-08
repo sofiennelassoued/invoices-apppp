@@ -1,15 +1,15 @@
 const mongoose = require("mongoose");
 
-const INVOICE_STATUSES = [
-  "Draft",
-  "Pending",
-  "Paid",
-  "Partial Payment",
-  "Overdue",
-  "Cancelled",
-  "Rejected",
-  "Refunded",
-];
+const InvoiceStatus = {
+  DRAFT: "Draft",
+  PENDING: "Pending",
+  PAID: "Paid",
+  PARTIAL_PAYMENT: "Partial_Payment",
+  OVERDUE: "Overdue",
+  CANCELLED: "Overdue",
+  REJECTED: "Rejected",
+  REFUNDED: "Refunded",
+};
 
 const ItemSchema = new mongoose.Schema({
   label: String,
@@ -37,8 +37,8 @@ const InvoiceSchema = new mongoose.Schema(
     userId: String,
     status: {
       type: String,
-      enum: INVOICE_STATUSES,
-      default: INVOICE_STATUSES[0],
+      enum: InvoiceStatus,
+      default: InvoiceStatus.DRAFT,
     },
   },
   { timestamps: true }
@@ -46,4 +46,4 @@ const InvoiceSchema = new mongoose.Schema(
 
 const Invoice = mongoose.model("Invoice", InvoiceSchema);
 
-module.exports = { Invoice, INVOICE_STATUSES };
+module.exports = { Invoice, InvoiceStatus };
